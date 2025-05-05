@@ -14,6 +14,8 @@ from utils.commons.hparams import set_hparams
 from utils.commons.hparams import hparams as hp
 from utils.audio.io import save_wav
 import json
+from tqdm import tqdm
+import argparse
 
 
 def process_align(ph_durs, mel, item, hop_size, audio_sample_rate):
@@ -233,6 +235,65 @@ class StyleTransfer(BaseTTSInfer):
         os.makedirs("infer_out", exist_ok=True)
         save_wav(wav_out, f"infer_out/transfer.wav", hp["audio_sample_rate"])
 
+    @classmethod
+    def run_gtsinger_eval(cls):
+        set_hparams()
+
+        ## Metadata ##
+        metadata_file = "/storage/zhangxueyao/workspace/TCSinger/data/processed/gtsinger_eval/metadata.json"
+        with open(metadata_file, "r") as f:
+            metadata = json.load(f)
+        name2item = {item["item_name"]: item for item in metadata}
+
+        ## Save ##
+        save_root = "/storage/zhangxueyao/workspace/SpeechGenerationYC_ckpts/ckpts/vevo2/baselines/tcsinger"
+        root = "/storage/zhangxueyao/workspace/SpeechGenerationYC/EvalSet/svs/"
+
+        for group in ["gtsinger_svs_zh", "gtsinger_svs_en"]:
+            save_dir = os.path.join(save_root, group)
+            os.makedirs(save_dir, exist_ok=True)
+
+            evalset_file = os.path.join(root, group, "evalset.json")
+            with open(evalset_file, "r") as f:
+                evalset = json.load(f)
+
+            for evalset_item in tqdm(evalset, desc=f"Processing {group}"):
+                output_path = os.path.join(
+                    save_dir,
+                    "{}-{}-{}".format("tcsinger", group, evalset_item["output_path"]),
+                )
+                if os.path.exists(output_path):
+                    continue
+
+                # use ref_name and gen_name as item_name in metadata or input other commented information.
+                inp = {
+                    "ref_name": evalset_item["prompt"]["uid"],
+                    "gen_name": evalset_item["input"]["uid"],
+                }
+
+                # use info in metadata.json
+                item = name2item[inp["ref_name"]]
+                inp["text_in"] = item["ph"]
+                inp["note_in"] = item["ep_pitches"]
+                inp["note_dur_in"] = item["ep_notedurs"]
+                inp["note_type_in"] = item["ep_types"]
+                inp["ref_audio"] = item["wav_fn"]
+                inp["ph_durs"] = item["ph_durs"]
+
+                item = name2item[inp["gen_name"]]
+                inp["text_gen"] = item["ph"]
+                inp["note_gen"] = item["ep_pitches"]
+                inp["note_dur_gen"] = item["ep_notedurs"]
+                inp["note_type_gen"] = item["ep_types"]
+
+                infer_ins = cls(hp)
+                out = infer_ins.infer_once(inp)
+                wav_out, mel_out = out
+
+                save_wav(wav_out, output_path, hp["audio_sample_rate"])
+
 
 if __name__ == "__main__":
-    StyleTransfer.example_run()
+    # StyleTransfer.example_run()
+
+    StyleTransfer.run_gtsinger_eval()

@@ -67,17 +67,18 @@ def process_json(json_path, item_name, wav_fn):
     }
 
 
-# 你需要手动指定 item_name 和 wav_fn
-gen_item = process_json(
-    "data/processed/tc/gen.json",
-    "Chinese#ZH-Alto-1#Mixed_Voice_and_Falsetto#一次就好#Mixed_Voice_Group#0001",
-    "/storage/zhangxueyao/dataset/2024-NeurIPS-GTSinger/Chinese/ZH-Alto-1/Mixed_Voice_and_Falsetto/一次就好/Mixed_Voice_Group/0001.wav",  # 你实际的音频文件路径
-)
-ref_item = process_json(
-    "data/processed/tc/ref.json",
-    "English#EN-Alto-2#Mixed_Voice_and_Falsetto#A Thousand Years#Control_Group#0001",
-    "/storage/zhangxueyao/dataset/2024-NeurIPS-GTSinger/English/EN-Alto-2/Mixed_Voice_and_Falsetto/A Thousand Years/Control_Group/0001.wav",  # 你实际的音频文件路径
-)
+if __name__ == "__main__":
+    # 你需要手动指定 item_name 和 wav_fn
+    gen_item = process_json(
+        "data/processed/tc/gen.json",
+        "Chinese#ZH-Alto-1#Mixed_Voice_and_Falsetto#一次就好#Mixed_Voice_Group#0001",
+        "/storage/zhangxueyao/dataset/2024-NeurIPS-GTSinger/Chinese/ZH-Alto-1/Mixed_Voice_and_Falsetto/一次就好/Mixed_Voice_Group/0001.wav",  # 你实际的音频文件路径
+    )
+    ref_item = process_json(
+        "data/processed/tc/ref.json",
+        "English#EN-Alto-2#Mixed_Voice_and_Falsetto#A Thousand Years#Control_Group#0001",
+        "/storage/zhangxueyao/dataset/2024-NeurIPS-GTSinger/English/EN-Alto-2/Mixed_Voice_and_Falsetto/A Thousand Years/Control_Group/0001.wav",  # 你实际的音频文件路径
+    )
 
-with open("data/processed/tc/metadata.json", "w") as f:
-    json.dump([gen_item, ref_item], f, ensure_ascii=False, indent=2)
+    with open("data/processed/tc/metadata.json", "w") as f:
+        json.dump([gen_item, ref_item], f, ensure_ascii=False, indent=2)
